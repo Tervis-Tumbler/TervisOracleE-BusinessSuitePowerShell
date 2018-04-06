@@ -14,11 +14,15 @@
     ApplmgrPasswordstateEntryID = 4771
 }
 
+function Get-TervisEBSEnvironment {
+    $EBSEnvironments
+}
+
 function Set-TervisEBSEnvironment {
     param (
         [Parameter(Mandatory)]$Name
     )
-    $Environment = $EBSEnvironments | 
+    $Environment = Get-TervisEBSEnvironment | 
     Where-Object Name -EQ $Name
 
     $OracleDatabaseEntry = Get-PasswordstateOracleDatabaseEntryDetails -PasswordID $Environment.Apps_ReadPasswordstateEntryID
@@ -29,7 +33,8 @@ function Set-TervisEBSEnvironment {
     $DNSRoot = Get-ADDomain | Select-Object -ExpandProperty DNSRoot
     $Configuration = New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
     
-    Set-EBSPowershellConfiguration -Configuration $Configuration
+    Import-Module -Force -Prefix $Name -Name OracleE-BusinessSuitePowerShell
+    & "Set-$($Name)EBSPowershellConfiguration" -Configuration $Configuration
 }
 
 Set-TervisEBSEnvironment -Name Delta
