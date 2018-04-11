@@ -33,8 +33,10 @@ function Set-TervisEBSEnvironment {
     $DNSRoot = Get-ADDomain | Select-Object -ExpandProperty DNSRoot
     $Configuration = New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
     
-    Import-Module -Force -Prefix $Name -Name OracleE-BusinessSuitePowerShell
-    & "Set-$($Name)EBSPowershellConfiguration" -Configuration $Configuration
+    Set-EBSPowershellConfiguration -Configuration $Configuration
+
+    #Import-Module -Force -Prefix $Name -Name OracleE-BusinessSuitePowerShell
+    #& "Set-$($Name)EBSPowershellConfiguration" -Configuration $Configuration
 }
 
 Set-TervisEBSEnvironment -Name Delta
