@@ -30,7 +30,7 @@ function Set-TervisEBSEnvironment {
     $RootCredential = Get-PasswordstateCredential -PasswordID $Environment.RootPasswordstateEntryID
     $AppsCredential = Get-PasswordstateCredential -PasswordID $Environment.AppsPasswordstateEntryID
     $ApplmgrCredential = Get-PasswordstateCredential -PasswordID $Environment.ApplmgrPasswordstateEntryID
-    $DNSRoot = Get-ADDomain | Select-Object -ExpandProperty DNSRoot
+    $DNSRoot = "tervis.prv" #Get-ADDomain | Select-Object -ExpandProperty DNSRoot
     $Configuration = New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
     
     Set-EBSPowershellConfiguration -Configuration $Configuration
