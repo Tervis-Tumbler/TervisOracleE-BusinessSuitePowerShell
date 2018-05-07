@@ -31,7 +31,7 @@ Get-EBSTradingCommunityArchitectureParty
 
 ipmo -Force OracleE-BusinessSuitePowerShell, TervisOracleE-BusinessSuitePowerShell, InvokeSQL
 
-$Organization = Get-EBSOrganiztaionFromEmail -EmailAddress $EmailAddress | select -First 1
+$OrganizationParty = Get-EBSOrganiztaionFromEmail -EmailAddress $EmailAddress | select -First 1
 
 $Account = Get-EBSTradingCommunityArchitectureCustomerAccount -Party_ID $Organization.PARTY_ID
 $AccountSites = $Account | Get-EBSTradingCommunityArchitectureCustomerAccountSite
@@ -49,8 +49,8 @@ $Contacts = $Relationships |
 }
 
 
-"Organization"
-$Organization | ft *
+"OrganizationParty"
+$$OrganizationParty | ft *
 "Account"
 $Account | ft *
 "AccountSites"
@@ -66,3 +66,23 @@ $Sites | ft *
 "Contacts"
 $Contacts | ft *
 
+Remove-TypeData System.Array
+ipmo -Force OracleE-BusinessSuitePowerShell, TervisOracleE-BusinessSuitePowerShell, InvokeSQL
+$Organization = Get-EBSTradingCommunityArchitectureOrganizationObject -Party_ID 42924331
+$Organization.Account.Site[0].Contact
+$Organization | ConvertTo-Json -Depth 100
+
+
+$ContatPoint1 = Get-EBSTradingCommunityArchitectureContactPoint -EmailAddress account2ndlevelfromaccount@email.com
+$Party1 = Get-EBSTradingCommunityArchitectureParty -Party_ID $ContatPoint1.OWNER_TABLE_ID
+$Party1Relationship = Get-EBSTradingCommunityArchitectureRelationship -Party_ID $Party1.PARTY_ID
+
+$ContatPoint1
+$Party1
+$Party1Relationship
+
+$ContatPoint2 = Get-EBSTradingCommunityArchitectureContactPoint -EmailAddress account2ndlevelFromOrg@email.com
+$Party2 = Get-EBSTradingCommunityArchitectureParty -Party_ID $ContatPoint2.owner_table_id
+
+$ContatPoint2
+$Party2
