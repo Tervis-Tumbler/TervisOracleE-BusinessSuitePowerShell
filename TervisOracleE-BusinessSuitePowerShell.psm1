@@ -1,6 +1,9 @@
 ﻿$EBSEnvironments = [PSCustomObject]@{
     Name = "Production"
     Apps_ReadPasswordstateEntryID = 4624
+    AppsPasswordstateEntryID = 469
+    RootPasswordstateEntryID = 294
+    ApplmgrPasswordstateEntryID = 3416
 },
 [PSCustomObject]@{
     Name = "Epsilon"
@@ -25,11 +28,11 @@ function Set-TervisEBSEnvironment {
     $Environment = Get-TervisEBSEnvironment | 
     Where-Object Name -EQ $Name
 
-    $OracleDatabaseEntry = Get-PasswordstateOracleDatabaseEntryDetails -PasswordID $Environment.Apps_ReadPasswordstateEntryID
+    $OracleDatabaseEntry = Get-PasswordstateOracleDatabasePassword -ID $Environment.Apps_ReadPasswordstateEntryID
     $ConnectionString = $OracleDatabaseEntry | ConvertTo-OracleConnectionString
-    $RootCredential = Get-PasswordstateCredential -PasswordID $Environment.RootPasswordstateEntryID
-    $AppsCredential = Get-PasswordstateCredential -PasswordID $Environment.AppsPasswordstateEntryID
-    $ApplmgrCredential = Get-PasswordstateCredential -PasswordID $Environment.ApplmgrPasswordstateEntryID
+    $RootCredential = Get-PasswordstatePassword -ID $Environment.RootPasswordstateEntryID -AsCredential
+    $AppsCredential = Get-PasswordstatePassword -ID $Environment.AppsPasswordstateEntryID -AsCredential
+    $ApplmgrCredential = Get-PasswordstatePassword -ID $Environment.ApplmgrPasswordstateEntryID -AsCredential
     $DNSRoot = "tervis.prv" #Get-ADDomain | Select-Object -ExpandProperty DNSRoot
     $Configuration = New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
     
@@ -38,8 +41,6 @@ function Set-TervisEBSEnvironment {
     #Import-Module -Force -Prefix $Name -Name OracleE-BusinessSuitePowerShell
     #& "Set-$($Name)EBSPowershellConfiguration" -Configuration $Configuration
 }
-
-Set-TervisEBSEnvironment -Name Delta
 
 function Invoke-TervisEBSResponsibilityAnalysis {
     $EBSUserNamesAndResponsibility = Get-EBSUserNameAndResponsibility
