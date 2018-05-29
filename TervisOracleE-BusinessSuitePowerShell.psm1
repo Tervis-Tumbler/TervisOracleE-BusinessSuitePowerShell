@@ -21,7 +21,7 @@ function Get-TervisEBSEnvironment {
     $EBSEnvironments
 }
 
-function Set-TervisEBSEnvironment {
+function Get-TervisEBSPowershellConfiguration {
     param (
         [Parameter(Mandatory)]$Name
     )
@@ -34,8 +34,14 @@ function Set-TervisEBSEnvironment {
     $AppsCredential = Get-PasswordstatePassword -ID $Environment.AppsPasswordstateEntryID -AsCredential
     $ApplmgrCredential = Get-PasswordstatePassword -ID $Environment.ApplmgrPasswordstateEntryID -AsCredential
     $DNSRoot = "tervis.prv" #Get-ADDomain | Select-Object -ExpandProperty DNSRoot
-    $Configuration = New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
-    
+    New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
+}
+
+function Set-TervisEBSEnvironment {
+    param (
+        [Parameter(Mandatory)]$Name
+    )
+    $Configuration = Get-TervisEBSPowershellConfiguration -Name $Name
     Set-EBSPowershellConfiguration -Configuration $Configuration
 
     #Import-Module -Force -Prefix $Name -Name OracleE-BusinessSuitePowerShell
