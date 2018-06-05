@@ -11,6 +11,15 @@ FROM hz_contact_points
 WHERE CONTACT_POINT_TYPE = 'PHONE'
 "@
 
+$SQLCommand =  @"
+SELECT
+    Party_Name,
+    Person_Last_Name,
+    Person_First_Name
+FROM hz_parties
+"@
+
+
 $Results = Invoke-OracleSQL -ConnectionString $EBSEnvironmentConfiguration.DatabaseConnectionString -SQLCommand $SQLCommand
 
 $Results.Count
