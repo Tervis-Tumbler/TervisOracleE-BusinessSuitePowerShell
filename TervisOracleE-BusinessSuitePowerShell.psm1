@@ -18,7 +18,11 @@
 }
 
 function Get-TervisEBSEnvironment {
-    $EBSEnvironments
+    param (
+        $Name
+    )
+    $EBSEnvironments |
+    Where-Object {-not $Name -or $_.Name -eq $Name}
 }
 
 function Get-TervisEBSPowershellConfiguration {
