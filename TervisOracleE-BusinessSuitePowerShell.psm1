@@ -1,20 +1,20 @@
 ﻿$EBSEnvironments = [PSCustomObject]@{
     Name = "Production"
-    Apps_ReadPasswordstateEntryID = 4624
-    AppsPasswordstateEntryID = 469
-    RootPasswordstateEntryID = 294
-    ApplmgrPasswordstateEntryID = 3415
+    Apps_ReadPasswordstateEntryGUID = "4d8c2876-48c9-4b02-93e2-445d4474fe1f"
+    AppsPasswordstateEntryGUID = "b74efe68-1e38-4bde-8004-849ef0dd7fdf"
+    RootPasswordstateEntryGUID = "fdd03454-d2c4-4fa4-90a5-3aeda18dd1d0"
+    ApplmgrPasswordstateEntryGUID = "a50043d3-8e24-4f0c-99a9-d9498bb9d71d"
 },
 [PSCustomObject]@{
     Name = "Epsilon"
-    Apps_ReadPasswordstateEntryID = 2669
+    Apps_ReadPasswordstateEntryGUID = "a9efbf4c-8343-422a-a1b2-e53f993edc98"
 },
 [PSCustomObject]@{
     Name = "Delta"
-    Apps_ReadPasswordstateEntryID = 2852
-    AppsPasswordstateEntryID = 2725
-    RootPasswordstateEntryID = 4691
-    ApplmgrPasswordstateEntryID = 4771
+    Apps_ReadPasswordstateEntryGUID = "2b934bee-0d97-4883-8931-01f441549e4d"
+    AppsPasswordstateEntryGUID = "46046d76-b60c-4874-9f26-b3b98d6a0c1c"
+    RootPasswordstateEntryGUID = "cf55567b-29e4-43bc-8aed-e34fa96a74a4"
+    ApplmgrPasswordstateEntryGUID = "f1a55876-98e2-4186-9890-be5b26eb7cb0"
 }
 
 function Get-TervisEBSEnvironment {
@@ -32,11 +32,11 @@ function Get-TervisEBSPowershellConfiguration {
     $Environment = Get-TervisEBSEnvironment |
     Where-Object Name -EQ $Name
 
-    $OracleDatabaseEntry = Get-PasswordstateOracleDatabasePassword -ID $Environment.Apps_ReadPasswordstateEntryID
+    $OracleDatabaseEntry = Get-TervisPasswordstatePassword -GUID $Environment.Apps_ReadPasswordstateEntryGUID -PropertyMapName OracleDatabase
     $ConnectionString = $OracleDatabaseEntry | ConvertTo-OracleConnectionString
-    $RootCredential = Get-PasswordstatePassword -ID $Environment.RootPasswordstateEntryID -AsCredential
-    $AppsCredential = Get-PasswordstatePassword -ID $Environment.AppsPasswordstateEntryID -AsCredential
-    $ApplmgrCredential = Get-PasswordstatePassword -ID $Environment.ApplmgrPasswordstateEntryID -AsCredential
+    $RootCredential = Get-TervisPasswordstatePassword -GUID $Environment.RootPasswordstateEntryGUID -AsCredential
+    $AppsCredential = Get-TervisPasswordstatePassword -GUID $Environment.AppsPasswordstateEntryGUID -AsCredential
+    $ApplmgrCredential = Get-TervisPasswordstatePassword -GUID $Environment.ApplmgrPasswordstateEntryGUID -AsCredential
     $DNSRoot = "tervis.prv" #Get-ADDomain | Select-Object -ExpandProperty DNSRoot
     New-EBSPowershellConfiguration -DatabaseConnectionString $ConnectionString -AppsCredential $AppsCredential -InternetApplicationServerComputerName "ebsias.$($Environment.Name).$DNSRoot" -RootCredential $RootCredential -ApplmgrCredential $ApplmgrCredential
 }
