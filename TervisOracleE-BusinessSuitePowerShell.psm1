@@ -29,7 +29,7 @@ function Get-TervisEBSPowershellConfiguration {
     param (
         [Parameter(Mandatory)]$Name
     )
-    $Environment = Get-TervisEBSEnvironment | 
+    $Environment = Get-TervisEBSEnvironment |
     Where-Object Name -EQ $Name
 
     $OracleDatabaseEntry = Get-PasswordstateOracleDatabasePassword -ID $Environment.Apps_ReadPasswordstateEntryID
@@ -59,7 +59,7 @@ function Invoke-TervisEBSResponsibilityAnalysis {
     $Members = Get-ADGroupMember -Identity "Customer Service Reps"
     $Members += Get-ADGroupMember -Identity "Returns Department"
 
-    $ResponsibilitiesOfDTCAndReturns = $EBSUserNamesAndResponsibility | 
+    $ResponsibilitiesOfDTCAndReturns = $EBSUserNamesAndResponsibility |
     Where-Object USER_NAME -in $Members.samaccountname
 
     $ResponsibilitiesOfDTCAndReturns.User_Name | Sort-Object -Unique | measure
