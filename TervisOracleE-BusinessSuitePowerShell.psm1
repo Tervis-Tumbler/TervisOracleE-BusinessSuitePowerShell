@@ -10,6 +10,8 @@
     Name = "Epsilon"
     Apps_ReadPasswordstateEntryGUID = "a9efbf4c-8343-422a-a1b2-e53f993edc98"
     AppsPasswordstateEntryGUID = "efba22a9-4afe-4f46-afe1-f3c598738fb4"
+    RootPasswordstateEntryGUID = "705e179e-74a0-4731-b4f8-9277202af854"
+    ApplmgrPasswordstateEntryGUID = "fff258b6-9585-4c43-9f7d-785523df7b56"
     SysPasswordstateEntryGUID = "de3740e2-67b4-4342-821b-65998a46a2c3"
 },
 [PSCustomObject]@{
