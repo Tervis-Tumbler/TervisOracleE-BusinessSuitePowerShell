@@ -30,13 +30,14 @@ $OracleOutputParam.ParameterName = "outputvar"
 $OracleOutputParam.OracleDbType = "VARCHAR2"
 $OracleOutputParam.Size = "1000"
 $OracleOutputParam.Direction = "output"
+$command.Parameters.Add($OracleOutputParam)
+
 $OracleInputParam = New-Object -TypeName Oracle.ManagedDataAccess.Client.OracleParameter
 $OracleInputParam.ParameterName = "inputvar"
 $OracleInputParam.OracleDbType = "VARCHAR2"
 $OracleInputParam.Size = "1000"
 $OracleInputParam.Direction = "input"
 $OracleInputParam.Value = "Input String Test"
-$command.Parameters.Add($OracleOutputParam)
 $command.Parameters.Add($OracleInputParam)
 
 $Adapter.Fill($DataSet) | Out-Null
