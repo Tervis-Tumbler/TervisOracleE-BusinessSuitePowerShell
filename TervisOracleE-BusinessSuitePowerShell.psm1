@@ -101,13 +101,12 @@ Function New-EBSCustomerRecord {
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$BlindShipmentFlag,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$OrganizationName,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$AccountName,
-        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$AccountNumber,
-        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$CustomerType,
+        [parameter(ValueFromPipelineByPropertyName)]$AccountNumber,
+        [parameter(ValueFromPipelineByPropertyName)]$CustomerType,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FOBPoint,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$Ship_Sets_Include_Lines_Flag,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$ShipVia,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FreightTerms,
-        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$cust_account_id,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SalesChannel,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$ShipToSiteSameAsBill,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$Site_Ship_Sets_Include_Lines_Flag,
@@ -116,9 +115,11 @@ Function New-EBSCustomerRecord {
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteFOBPoint,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteFreightTerms,
         [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteSalesChannel,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FNDUserID,
         $EBSEnvironmentConfiguration = (Get-EBSPowershellConfiguration)
     )
     Process{
+        $ConnectionString = (Get-EBSPowershellConfiguration).DatabaseConnectionString
         $PriceListHeaderID = (Get-EBSTradingCommunityArchitectureListHeaders -list_type_code PRL -Name $price_list_name).LIST_HEADER_ID
         $OrderTransactionTypeID = (Get-EBSTradingCommunityArchitectureTransactionTypesTL -Name $order_type).Transaction_Type_ID
         $SalesRep_ID = (Get-EBSTradingCommunityArchitectureSalesRep -Name $SalesRepName).SalesRep_ID
@@ -150,8 +151,8 @@ Function New-EBSCustomerRecord {
             -location_id $ShipToLocationID `
             -identifying_address_flag "N" `
             -created_by_module $created_by_module
-     $BillToAccountSite = Invoke-HZCustAccountSiteV2PubCreateCustAcctSite -cust_acct_id $CustomerRecord.x_cust_account_id -party_site_id  $BillToSite.x_party_site_id -created_by_module $created_by_module
-        $ShipToAccountSite = Invoke-HZCustAccountSiteV2PubCreateCustAcctSite -cust_acct_id $CustomerRecord.x_cust_account_id $ShipToSite.x_party_site_id -created_by_module $created_by_module
+        $BillToAccountSite = Invoke-HZCustAccountSiteV2PubCreateCustAcctSite -cust_acct_id $CustomerRecord.x_cust_account_id -party_site_id  $BillToSite.x_party_site_id -created_by_module $created_by_module -FNDUserID $FNDUserID
+        $ShipToAccountSite = Invoke-HZCustAccountSiteV2PubCreateCustAcctSite -cust_acct_id $CustomerRecord.x_cust_account_id $ShipToSite.x_party_site_id -created_by_module $created_by_module -FNDUserID $FNDUserID
 
         $BillToCustAccountSiteID = (Invoke-hzcustaccountsitev2pubcreatecustsiteuse -cust_acct_site_id $BillToAccountSite.x_cust_acct_site_id `
             -site_use_code "BILL_TO" `
@@ -205,13 +206,15 @@ Function New-EBSCustomerRecord {
             -cust_acct_site_id $BillToAccountSite.x_cust_acct_site_id `
             -primary_flag 'Y' `
             -role_type 'CONTACT' `
-            -created_by_module $created_by_module
+            -created_by_module $created_by_module `
+            -FNDUserID $FNDUserID
         $ShipToAccountRole = Invoke-HZCustAccountRoleV2PubCreateCustAccountRole -party_id $ShipToOrgContactPerson.x_party_id `
             -cust_account_id $CustomerRecord.x_cust_account_id `
             -cust_acct_site_id $ShipToAccountSite.x_cust_acct_site_id `
             -primary_flag 'Y' `
             -role_type 'CONTACT' `
-            -created_by_module $created_by_module
+            -created_by_module $created_by_module `
+            -FNDUserID $FNDUserID
         $BillingContactPointID = Invoke-HZContactPointV2PubCreateContactPoint -owner_table_name "HZ_PARTY_SITES" `
             -owner_table_id $BillToSite.x_party_site_id `
             -contact_point_type 'PHONE' `
