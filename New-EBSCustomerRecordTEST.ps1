@@ -1,3 +1,5 @@
+Set-TervisEBSEnvironment -Name Zeta
+
 $CustomerBillToInformation = [PSCustomObject][ordered]@{
         Sirname = "MR."
         FirstName = "Don"
