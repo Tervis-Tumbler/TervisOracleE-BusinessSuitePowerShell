@@ -88,3 +88,195 @@ function Invoke-TervisEBSResponsibilityAnalysis {
 
     $EBSUserNamesAndResponsibility | Where-Object Responsibility_Name -EQ "Tervis OM User" | Select-Object User_Name | measure
 }
+
+Function New-EBSCustomerRecord {
+    param(
+        [parameter(ValueFromPipeline)]$CustomerBillToInformation,
+        [parameter(ValueFromPipeline)]$CustomerShipToInformation,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$created_by_module,
+        [parameter(mandatory,ValueFromPipelineByPropertyName)]$price_list_name,
+        [parameter(mandatory,ValueFromPipelineByPropertyName)]$order_type,
+        [parameter(mandatory,ValueFromPipelineByPropertyName)]$CustomerClass,
+        [parameter(mandatory,ValueFromPipelineByPropertyName)]$SalesRepName,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$BlindShipmentFlag,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$OrganizationName,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$AccountName,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$AccountNumber,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$CustomerType,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FOBPoint,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$Ship_Sets_Include_Lines_Flag,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$ShipVia,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$FreightTerms,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$cust_account_id,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SalesChannel,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$ShipToSiteSameAsBill,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$Site_Ship_Sets_Include_Lines_Flag,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteShipVia,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteBlindShipmentFlag,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteFOBPoint,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteFreightTerms,
+        [parameter(Mandatory,ValueFromPipelineByPropertyName)]$SiteSalesChannel,
+        $EBSEnvironmentConfiguration = (Get-EBSPowershellConfiguration)
+    )
+    Process{
+        $PriceListHeaderID = (Get-EBSTradingCommunityArchitectureListHeaders -list_type_code PRL -Name $price_list_name).LIST_HEADER_ID
+        $OrderTransactionTypeID = (Get-EBSTradingCommunityArchitectureTransactionTypesTL -Name $order_type).Transaction_Type_ID
+        $SalesRep_ID = (Get-EBSTradingCommunityArchitectureSalesRep -Name $SalesRepName).SalesRep_ID
+        $CustomerRecord = Invoke-HZCustAccountV2PubCreateCustAccount -organization_name $OrganizationName `
+            -created_by_module $created_by_module `
+            -account_name $AccountName `
+            -p_account_number $AccountNumber `
+            -customer_type $CustomerType `
+            -customer_class_code $CustomerClass `
+            -fob_point $FOBPoint `
+            -freight_term $FreightTerms `
+            -sales_channel_code $SalesChannel `
+            -price_list_id $PriceListHeaderID `
+            -ship_via $ShipVia `
+            -SHIP_SETS_INCLUDE_LINES_FLAG $Ship_Sets_Include_Lines_Flag `
+            -attribute9 $BlindShipmentFlag
+        $BillToLocationId = ($CustomerBillToInformation | Invoke-HZLocationV2PubCreateLocation -created_by_module $created_by_module).x_location_id
+        if($ShipToSiteSameAsBill){
+            $ShipToLocationID = ($CustomerBillToInformation | Invoke-HZLocationV2PubCreateLocation -created_by_module $created_by_module).x_location_id
+        }
+        ELSE{
+            $ShipToLocationID = ($CustomerShipToInformation | Invoke-HZLocationV2PubCreateLocation -created_by_module $created_by_module).x_location_id
+        }
+        $BillToSite = Invoke-HZPartySiteV2PubCreatePartySite -party_id $CustomerRecord.x_party_id `
+            -location_id $BillToLocationId `
+            -identifying_address_flag "Y" `
+            -created_by_module $created_by_module
+        $ShipToSite = Invoke-HZPartySiteV2PubCreatePartySite -party_id $CustomerRecord.x_party_id `
+            -location_id $ShipToLocationID `
+            -identifying_address_flag "N" `
+            -created_by_module $created_by_module
+     $BillToAccountSite = Invoke-HZCustAccountSiteV2PubCreateCustAcctSite -cust_acct_id $CustomerRecord.x_cust_account_id -party_site_id  $BillToSite.x_party_site_id -created_by_module $created_by_module
+        $ShipToAccountSite = Invoke-HZCustAccountSiteV2PubCreateCustAcctSite -cust_acct_id $CustomerRecord.x_cust_account_id $ShipToSite.x_party_site_id -created_by_module $created_by_module
+
+        $BillToCustAccountSiteID = (Invoke-hzcustaccountsitev2pubcreatecustsiteuse -cust_acct_site_id $BillToAccountSite.x_cust_acct_site_id `
+            -site_use_code "BILL_TO" `
+            -primary_salesrep_id $SalesRep_ID `
+            -order_type_id $OrderTransactionTypeID `
+            -price_list_id $PriceListHeaderID `
+            -fob_point $FOBPoint `
+            -freight_term $FreightTerms `
+            -ship_via $SiteShipVia `
+            -SHIP_SETS_INCLUDE_LINES_FLAG $Ship_Sets_Include_Lines_Flag `
+            -created_by_module $created_by_module `
+            -attribute9 $SiteBlindShipmentFlag).x_site_use_id
+        $ShipToCustAccountSiteID = (Invoke-hzcustaccountsitev2pubcreatecustsiteuse -cust_acct_site_id $ShipToAccountSite.x_cust_acct_site_id  `
+            -site_use_code "SHIP_TO" `
+            -primary_salesrep_id $SalesRep_ID `
+            -order_type_id $OrderTransactionTypeID `
+            -price_list_id $PriceListHeaderID `
+            -fob_point $SiteFOBPoint `
+            -freight_term $SiteFreightTerms `
+            -ship_via $SiteShipVia `
+            -SHIP_SETS_INCLUDE_LINES_FLAG $Site_Ship_Sets_Include_Lines_Flag `
+            -created_by_module $created_by_module).x_site_use_id
+        $BillToSiteContact = Invoke-HZPartyV2PubCreatePerson -person_pre_name_adjunct $CustomerBillToInformation.Sirname `
+            -person_first_name $CustomerBillToInformation.FirstName `
+            -person_last_name $CustomerBillToInformation.LastName `
+            -created_by_module $created_by_module
+        $ShipToSiteContact = Invoke-HZPartyV2PubCreatePerson -person_pre_name_adjunct $CustomerShipToInformation.Sirname `
+            -person_first_name $CustomerShipToInformation.FirstName `
+            -person_last_name $CustomerShipToInformation.LastName `
+            -created_by_module $created_by_module
+        $BillToOrgContactPerson = Invoke-HZPartyContactV2PubCreateOrgContact -subject_id $BillToSiteContact.x_party_id `
+            -object_id $CustomerRecord.x_party_id `
+            -subject_type 'PERSON' `
+            -subject_table_name 'HZ_PARTIES' `
+            -object_type "ORGANIZATION" `
+            -object_table_name "HZ_PARTIES" `
+            -relationship_code "CONTACT_OF" `
+            -relationship_type "CONTACT" `
+            -created_by_module $created_by_module
+        $ShipToOrgContactPerson = Invoke-HZPartyContactV2PubCreateOrgContact -subject_id $ShipToSiteContact.x_party_id `
+            -object_id $CustomerRecord.x_party_id `
+            -subject_type 'PERSON' `
+            -subject_table_name 'HZ_PARTIES' `
+            -object_type "ORGANIZATION" `
+            -object_table_name "HZ_PARTIES" `
+            -relationship_code "CONTACT_OF" `
+            -relationship_type "CONTACT" `
+            -created_by_module $created_by_module
+        $BillToAccountRole = Invoke-HZCustAccountRoleV2PubCreateCustAccountRole -party_id $BillToOrgContactPerson.x_party_id `
+            -cust_account_id $CustomerRecord.x_cust_account_id `
+            -cust_acct_site_id $BillToAccountSite.x_cust_acct_site_id `
+            -primary_flag 'Y' `
+            -role_type 'CONTACT' `
+            -created_by_module $created_by_module
+        $ShipToAccountRole = Invoke-HZCustAccountRoleV2PubCreateCustAccountRole -party_id $ShipToOrgContactPerson.x_party_id `
+            -cust_account_id $CustomerRecord.x_cust_account_id `
+            -cust_acct_site_id $ShipToAccountSite.x_cust_acct_site_id `
+            -primary_flag 'Y' `
+            -role_type 'CONTACT' `
+            -created_by_module $created_by_module
+        $BillingContactPointID = Invoke-HZContactPointV2PubCreateContactPoint -owner_table_name "HZ_PARTY_SITES" `
+            -owner_table_id $BillToSite.x_party_site_id `
+            -contact_point_type 'PHONE' `
+            -phone_line_type $CustomerBillToInformation.PhoneLineType `
+            -phone_area_code $CustomerBillToInformation.PhoneAreaCode `
+            -Phone_number $CustomerBillToInformation.PhoneNumber `
+            -created_by_module $created_by_module
+        $ShippingContactPointID = Invoke-HZContactPointV2PubCreateContactPoint -owner_table_name "HZ_PARTY_SITES" `
+            -owner_table_id $ShipToSite.x_party_site_id `
+            -contact_point_type 'PHONE' `
+            -phone_line_type $CustomerShipToInformation.PhoneLineType `
+            -phone_area_code $CustomerShipToInformation.PhoneAreaCode `
+            -Phone_number $CustomerShipToInformation.PhoneNumber `
+            -created_by_module $created_by_module
+        $ShipToEmailContactPointID = Invoke-HZContactPointV2PubCreateContactPoint -owner_table_name "HZ_PARTY_SITES" `
+            -owner_table_id $ShipToSite.x_party_site_id `
+            -contact_point_type 'EMAIL' `
+            -email_format 'MAILHTML' `
+            -email_address $CustomerShipToInformation.EmailAddress `
+            -created_by_module $created_by_module
+        $BillToResponsabilityID = Invoke-HZCustAccountRoleV2PubCreateRoleResponsibility `
+            -cust_account_role_id $BillToAccountRole.x_cust_account_role_id `
+            -responsibility_type 'BILL_TO' `
+            -created_by_module $created_by_module
+        $ShipToResponsabilityID = Invoke-HZCustAccountRoleV2PubCreateRoleResponsibility `
+            -cust_account_role_id $ShipToAccountRole.x_cust_account_role_id `
+            -responsibility_type 'SHIP_TO' `
+            -created_by_module $created_by_module
+        [PSCustomObject]@{
+            "CustomerRecord account_number" = $CustomerRecord.x_account_number
+            "CustomerRecord cust_account_id" = $CustomerRecord.x_cust_account_id
+            "CustomerRecord cust_profile_id" = $CustomerRecord.x_cust_profile_id
+            "CustomerRecord party_number" = $CustomerRecord.x_party_number
+            "BillToLocationId" = $BillToLocationId
+            "ShipToLocationId" = $ShipToLocationId
+            "Bill To Site party_site_id" = $BillToSite.x_party_site_id
+            "Bill To Site party_site_number" = $BillToSite.x_party_site_number
+            "Ship To Site party_site_id" = $ShipToSite.x_party_site_id
+            "Ship To Site party_site_number" = $ShipToSite.x_party_site_number
+            "Bill To Account Site cust_acct_site_id" = $BillToAccountSite.x_cust_acct_site_id
+            "Ship To Account Site cust_acct_site_id" = $ShipToAccountSite.x_cust_acct_site_id
+            "Bill To Cust Account Site ID" = $BillToCustAccountSiteID
+            "Ship To Cust Account Site ID" = $ShipToCustAccountSiteID
+            "Bill To Site Contact party_id" = $BillToSiteContact.x_party_id
+            "Bill To Site Contact party_number" = $BillToSiteContact.x_party_number
+            "Bill To Site Contact profile_id" = $BillToSiteContact.x_profile_id
+            "Ship To Site Contact party_id" = $ShipToSiteContact.x_party_id
+            "Ship To Site Contact party_number" = $ShipToSiteContact.x_party_number
+            "Ship To Site Contact profile_id" = $ShipToSiteContact.x_profile_id
+            "Bill To Org Contact Person org_contact_id" = $BillToOrgContactPerson.x_org_contact_id
+            "Bill To Org Contact Person party_id" = $BillToOrgContactPerson.x_party_id
+            "Bill To Org Contact Person party_number" = $BillToOrgContactPerson.x_party_number
+            "Bill To Org Contact Person party_rel_id" = $BillToOrgContactPerson.x_party_rel_id
+            "Ship To Org Contact Person org_contact_id" = $ShipToOrgContactPerson.x_org_contact_id
+            "Ship To Org Contact Person party_id" = $ShipToOrgContactPerson.x_party_id
+            "Ship To Org Contact Person party_number" = $ShipToOrgContactPerson.x_party_number
+            "Ship To Org Contact Person party_rel_id" = $ShipToOrgContactPerson.x_party_rel_id
+            "Bill To Account Role cust_account_role_id" = $BillToAccountRole.x_cust_account_role_id
+            "Ship To Account Role cust_account_role_id" = $ShipToAccountRole.x_cust_account_role_id
+            "Billing Contact Point ID contact_point_id" = $BillingContactPointID.x_contact_point_id
+            "ShippingContact Point ID contact_point_id" = $ShippingContactPointID.x_contact_point_id
+            "Ship To Email Contact Point ID contact_point_id" = $ShipToEmailContactPointID.x_contact_point_id
+            "Bill To Responsability ID responsibility_id" = $BillToResponsabilityID.x_responsibility_id
+            "Ship To Responsability ID responsibility_id" = $ShipToResponsabilityID.x_responsibility_id
+        }
+    }
+}
+
