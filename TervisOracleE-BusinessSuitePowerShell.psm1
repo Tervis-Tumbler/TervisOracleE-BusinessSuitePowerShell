@@ -24,8 +24,8 @@
 },
 [PSCustomObject]@{
     Name = "Zeta"
-    Apps_ReadPasswordstateEntryGUID = "13b5f6b5-5a2b-4fd9-98b3-464ce06881bf"
     AppsPasswordstateEntryGUID = "dc6b714e-3149-4679-a7d0-d6fc8f401457"
+    Apps_ReadPasswordstateEntryGUID = "13b5f6b5-5a2b-4fd9-98b3-464ce06881bf"
     SysPasswordstateEntryGUID = "5a603bb4-7749-43e3-ac20-446a500c0e39"
 }
 
@@ -44,7 +44,7 @@ function Get-TervisEBSPowershellConfiguration {
     $Environment = Get-TervisEBSEnvironment |
     Where-Object Name -EQ $Name
 
-    $OracleDatabaseEntry = Get-TervisPasswordstatePassword -GUID $Environment.Apps_ReadPasswordstateEntryGUID -PropertyMapName OracleDatabase
+    $OracleDatabaseEntry = Get-TervisPasswordstatePassword -GUID $Environment.AppsPasswordstateEntryGUID -PropertyMapName OracleDatabase
     $ConnectionString = $OracleDatabaseEntry | ConvertTo-OracleConnectionString
     $RootCredential = Get-TervisPasswordstatePassword -GUID $Environment.RootPasswordstateEntryGUID -AsCredential
     $AppsCredential = Get-TervisPasswordstatePassword -GUID $Environment.AppsPasswordstateEntryGUID -AsCredential
