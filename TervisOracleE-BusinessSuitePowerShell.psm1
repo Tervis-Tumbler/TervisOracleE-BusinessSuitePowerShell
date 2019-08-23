@@ -55,6 +55,7 @@ function Get-TervisEBSPowershellConfiguration {
 }
 
 function Set-TervisEBSEnvironment {
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)]$Name
     )
