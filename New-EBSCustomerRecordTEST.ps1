@@ -1,4 +1,4 @@
-Set-TervisEBSEnvironment -Name Zeta
+Set-TervisEBSEnvironment -Name zeta
 
 $CustomerBillToInformation = [PSCustomObject][ordered]@{
         Sirname = "MR."
@@ -35,6 +35,40 @@ $CustomerShipToInformation = [PSCustomObject][ordered]@{
         Province = ""
 }
 
+$BillToSirname = "MR."
+$BillToFirstName = "Don"
+$BillToLastName = "Mohlmaster"
+$BillToPhoneNumber = "216-2537"
+$BillToPhoneAreaCode = "941"
+$BillToPhoneLineType = "GEN"
+$BillToEmailAddress = "dmohlmaster@tervis.com"
+$BillToAddress1 = "201 Triple Diamond Blvd."
+$BillToAddress2 = "BillToAddressLine2"
+$BillToAddress3 = "BillToAddressLine3"
+$BillToState = "FL"
+$BillToCountry = "US"
+$BillToCity = "North Venice"
+$BillToPostal_Code = "32075"
+$BillToProvince = ""
+
+$ShipToSirname = "MR."
+$ShipToFirstName = "Don"
+$ShipToLastName = "Mohlmaster"
+$ShipToPhoneNumber = "216-2537"
+$ShipToPhoneAreaCode = "941"
+$ShipToPhoneLineType = "GEN"
+$ShipToEmailAddress = "dmohlmaster@tervis.com"
+$ShipToAddress1 = "201 Triple Diamond Blvd."
+$ShipToAddress2 = "ShipToAddressLine2"
+$ShipToAddress3 = "ShipToAddressLine3"
+$ShipToState = "FL"
+$ShipToCountry = "US"
+$ShipToCity = "North Venice"
+$ShipToPostal_Code = "32075"
+$ShipToProvince = ""
+
+
+
 $created_by_module = 'TCA_V1_API' #'TCA_FORM_WRAPPER'
 $price_list_name = 'AMERICROWN'
 $order_type = 'ITC Sales Order'
@@ -59,8 +93,17 @@ $SiteFOBPoint = 'FACTORY'
 $SiteFreightTerms = 'COLLECT'
 $SiteSalesChannel = 'INDIRECT' #;--'DIRECT'
 
-$FNDUserID = 1231
+$FNDUserName = "DMOHLMASTER"
+$FNDUserID = (Get-EBSFNDUser -user_name $FNDUserName).USER_ID
 
-Set-TervisEBSEnvironment -Name Zeta
+Set-TervisEBSEnvironment -Name zeta
 $Splatvariable = New-SplatVariable -Function New-EBSCustomerRecord -Variables (Get-Variable)
-New-EBSCustomerRecord @Splatvariable
+$CustomerRecord = New-EBSCustomerRecord @Splatvariable
+
+
+
+
+######################https://docs.oracle.com/cd/E26401_01/doc.122/e48943/T358453T358475.htm
+
+
+#$HoldDefinition = Get-EBSTradingCommunityArchitectureHoldDefinition -Name "CustoMyzer Pending"

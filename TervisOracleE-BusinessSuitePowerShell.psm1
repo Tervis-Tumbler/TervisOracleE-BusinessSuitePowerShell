@@ -27,6 +27,8 @@
     AppsPasswordstateEntryGUID = "dc6b714e-3149-4679-a7d0-d6fc8f401457"
     Apps_ReadPasswordstateEntryGUID = "13b5f6b5-5a2b-4fd9-98b3-464ce06881bf"
     SysPasswordstateEntryGUID = "5a603bb4-7749-43e3-ac20-446a500c0e39"
+    RootPasswordstateEntryGUID = "fdd03454-d2c4-4fa4-90a5-3aeda18dd1d0"
+    ApplmgrPasswordstateEntryGUID = "42fdfa15-a3a8-426a-8bbb-0ffc5e04f693"
 }
 
 function Get-TervisEBSEnvironment {
@@ -37,7 +39,7 @@ function Get-TervisEBSEnvironment {
     Where-Object {-not $Name -or $_.Name -eq $Name}
 }
 
-function Get-TervisEBSPowershellConfiguration {
+function    Get-TervisEBSPowershellConfiguration {
     param (
         [Parameter(Mandatory)]$Name
     )
@@ -245,41 +247,82 @@ Function New-EBSCustomerRecord {
             -responsibility_type 'SHIP_TO' `
             -created_by_module $created_by_module
         [PSCustomObject]@{
-            "CustomerRecord account_number" = $CustomerRecord.x_account_number
-            "CustomerRecord cust_account_id" = $CustomerRecord.x_cust_account_id
-            "CustomerRecord cust_profile_id" = $CustomerRecord.x_cust_profile_id
-            "CustomerRecord party_number" = $CustomerRecord.x_party_number
-            "BillToLocationId" = $BillToLocationId
-            "ShipToLocationId" = $ShipToLocationId
-            "Bill To Site party_site_id" = $BillToSite.x_party_site_id
-            "Bill To Site party_site_number" = $BillToSite.x_party_site_number
-            "Ship To Site party_site_id" = $ShipToSite.x_party_site_id
-            "Ship To Site party_site_number" = $ShipToSite.x_party_site_number
-            "Bill To Account Site cust_acct_site_id" = $BillToAccountSite.x_cust_acct_site_id
-            "Ship To Account Site cust_acct_site_id" = $ShipToAccountSite.x_cust_acct_site_id
-            "Bill To Cust Account Site ID" = $BillToCustAccountSiteID
-            "Ship To Cust Account Site ID" = $ShipToCustAccountSiteID
-            "Bill To Site Contact party_id" = $BillToSiteContact.x_party_id
-            "Bill To Site Contact party_number" = $BillToSiteContact.x_party_number
-            "Bill To Site Contact profile_id" = $BillToSiteContact.x_profile_id
-            "Ship To Site Contact party_id" = $ShipToSiteContact.x_party_id
-            "Ship To Site Contact party_number" = $ShipToSiteContact.x_party_number
-            "Ship To Site Contact profile_id" = $ShipToSiteContact.x_profile_id
-            "Bill To Org Contact Person org_contact_id" = $BillToOrgContactPerson.x_org_contact_id
-            "Bill To Org Contact Person party_id" = $BillToOrgContactPerson.x_party_id
-            "Bill To Org Contact Person party_number" = $BillToOrgContactPerson.x_party_number
-            "Bill To Org Contact Person party_rel_id" = $BillToOrgContactPerson.x_party_rel_id
-            "Ship To Org Contact Person org_contact_id" = $ShipToOrgContactPerson.x_org_contact_id
-            "Ship To Org Contact Person party_id" = $ShipToOrgContactPerson.x_party_id
-            "Ship To Org Contact Person party_number" = $ShipToOrgContactPerson.x_party_number
-            "Ship To Org Contact Person party_rel_id" = $ShipToOrgContactPerson.x_party_rel_id
-            "Bill To Account Role cust_account_role_id" = $BillToAccountRole.x_cust_account_role_id
-            "Ship To Account Role cust_account_role_id" = $ShipToAccountRole.x_cust_account_role_id
-            "Billing Contact Point ID contact_point_id" = $BillingContactPointID.x_contact_point_id
-            "ShippingContact Point ID contact_point_id" = $ShippingContactPointID.x_contact_point_id
-            "Ship To Email Contact Point ID contact_point_id" = $ShipToEmailContactPointID.x_contact_point_id
-            "Bill To Responsability ID responsibility_id" = $BillToResponsabilityID.x_responsibility_id
-            "Ship To Responsability ID responsibility_id" = $ShipToResponsabilityID.x_responsibility_id
+            CustomerAccount = [PSCustomObject]@{
+                cust_account_id = $CustomerRecord.x_cust_account_id
+                account_number = $CustomerRecord.x_account_number
+                party_id = $CustomerRecord.x_party_id
+                party_number = $CustomerRecord.x_party_number
+                cust_profile_id = $CustomerRecord.x_cust_profile_id
+            }
+            BillToLocation = [PSCustomObject]@{
+                Location_id = $BillToLocationId
+            }
+            ShipToLocation = [PSCustomObject]@{
+                Location_id = $ShipToLocationId
+            }
+            BillToSite = [PSCustomObject]@{
+                party_site_id = $BillToSite.x_party_site_id
+                party_site_number = $BillToSite.x_party_site_number
+            }
+            ShipToSite = [PSCustomObject]@{
+                party_site_id = $ShipToSite.x_party_site_id
+                party_site_number = $ShipToSite.x_party_site_number
+            }
+            BillToAccountSite = [PSCustomObject]@{
+                cust_acct_site_id = $BillToAccountSite.x_cust_acct_site_id
+            }
+            ShipToAccountSite = [PSCustomObject]@{
+                cust_acct_site_id = $ShipToAccountSite.x_cust_acct_site_id
+            }
+            BillToCustAccountSite = [PSCustomObject]@{
+                cust_acct_siteid = $BillToCustAccountSiteID
+            }
+            ShipToCustAccountSite = [PSCustomObject]@{
+                cust_acct_siteid = $ShipToCustAccountSiteID
+            }
+            BillToSiteContact = [PSCustomObject]@{
+                party_id = $BillToSiteContact.x_party_id
+                party_number = $BillToSiteContact.x_party_number
+                profile_id = $BillToSiteContact.x_profile_id
+            }
+            ShipToSiteContact = [PSCustomObject]@{
+                party_id = $ShipToSiteContact.x_party_id
+                party_number = $ShipToSiteContact.x_party_number
+                profile_id = $ShipToSiteContact.x_profile_id
+            }
+            BillToOrgContactPerson = [PSCustomObject]@{
+                org_contact_id = $BillToOrgContactPerson.x_org_contact_id
+                party_id = $BillToOrgContactPerson.x_party_id
+                party_number = $BillToOrgContactPerson.x_party_number
+                party_rel_id = $BillToOrgContactPerson.x_party_rel_id
+            }
+            ShipToOrgContactPerson = [PSCustomObject]@{
+                org_contact_id = $ShipToOrgContactPerson.x_org_contact_id
+                party_id = $ShipToOrgContactPerson.x_party_id
+                party_number = $ShipToOrgContactPerson.x_party_number
+                party_rel_id = $ShipToOrgContactPerson.x_party_rel_id
+            }
+            BillToAccountRole = [PSCustomObject]@{
+                cust_account_role_id = $BillToAccountRole.x_cust_account_role_id
+            }
+            ShipToAccountRole = [PSCustomObject]@{
+                cust_account_role_id = $ShipToAccountRole.x_cust_account_role_id
+            }
+            BilltoContactPoint = [PSCustomObject]@{
+                contact_point_id = $BillingContactPointID.x_contact_point_id
+            }
+            ShipToContactPoint = [PSCustomObject]@{
+                contact_point_id = $ShippingContactPointID.x_contact_point_id
+            }
+            ShipToContactPointEmail = [PSCustomObject]@{
+                contact_point_id = $ShipToEmailContactPointID.x_contact_point_id
+            }
+            BillToResponsability = [PSCustomObject]@{
+                responsibility_id = $BillToResponsabilityID.x_responsibility_id
+            }
+            ShipToResponsability = [PSCustomObject]@{
+                responsibility_id = $ShipToResponsabilityID.x_responsibility_id
+            }
         }
     }
 }
